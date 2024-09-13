@@ -1,6 +1,7 @@
 ﻿using ProductInventory.Models;
 using ProductInventory.Repositories;
 using ProductInventory.Shared;
+using ProductInventory.ViewModels;
 
 namespace ProductInventory.Services
 {
@@ -12,8 +13,20 @@ namespace ProductInventory.Services
         {
             _productRepository = productRepository;
         }
-        public async Task CreateProductAsync(Product product)
+        
+        //public async Task CreateProductAsync(Product product)
+        public async Task CreateProductAsync(ProductViewModel productViewModel)
         {
+            //await _productRepository.AddAsync(product);
+            //var product = new Product
+            //{
+            //    Id = productViewModel.Id,
+            //    ProductName = productViewModel.ProductName,
+            //    Description = productViewModel.Description,
+            //    Price = productViewModel.Price,
+            //    StockQuantity = productViewModel.StockQuantity
+            //};
+            var product = MapToEntity(productViewModel);
             await _productRepository.AddAsync(product);
         }
         public async Task<string?> GetProductNameByNameAsync(string productName)
@@ -41,17 +54,87 @@ namespace ProductInventory.Services
 
             return (products, paginationMetadata);
         }
-        public async Task<Product?> GetProductByIdAsync(int id)
+        //public async Task<Product?> GetProductByIdAsync(int id)
+        public async Task<ProductViewModel?> GetProductByIdAsync(int id)
         {
-            return await _productRepository.GetByIdAsync(id);
+            //return await _productRepository.GetByIdAsync(id);
+            var product = await _productRepository.GetByIdAsync(id);
+
+            // Return null if the product is not found
+            if (product == null)
+            {
+                return null;
+            }
+
+            //return new ProductViewModel
+            //{
+            //    Id = product!.Id,
+            //    ProductName = product.ProductName,
+            //    Description = product.Description,
+            //    Price = product.Price,
+            //    StockQuantity = product.StockQuantity
+            //};
+            return MapToViewModel(product);
         }
-        public async Task UpdateProductAsync(Product product)
+
+        //public async Task<Product?> GetProductByNameExcludingIdAsync(string productName, int excludedId)
+        public async Task<ProductViewModel?> GetProductByNameExcludingIdAsync(string productName, int excludedId)
         {
+            //return await _productRepository.GetProductByNameExcludingIdAsync(productName, excludedId);
+
+            var product = await _productRepository.GetProductByNameExcludingIdAsync(productName, excludedId);
+            return product != null ? MapToViewModel(product) : null;
+        }
+
+        //public async Task UpdateProductAsync(Product product)
+        public async Task UpdateProductAsync(ProductViewModel productViewModel)
+        {
+            //await _productRepository.UpdateAsync(product);
+            //var product = new Product
+            //{
+            //    Id = productViewModel.Id,
+            //    ProductName = productViewModel.ProductName,
+            //    Description = productViewModel.Description,
+            //    Price = productViewModel.Price,
+            //    StockQuantity = productViewModel.StockQuantity
+            //};
+            var product = MapToEntity(productViewModel);
             await _productRepository.UpdateAsync(product);
         }
         public async Task DeleteProductAsync(int id)
         {
             await _productRepository.DeleteAsync(id);
+        }
+
+
+        //public async Task UpdateProductAsync(ProductViewModel productViewModel)
+        //{
+        //    var product = MapToEntity(productViewModel);
+        //    await _productRepository.UpdateAsync(product);
+        //}
+
+        private ProductViewModel MapToViewModel(Product product)
+        {
+            return new ProductViewModel
+            {
+                Id = product.Id,
+                ProductName = product.ProductName,
+                Description = product.Description,
+                Price = product.Price,
+                StockQuantity = product.StockQuantity
+            };
+        }
+
+        private Product MapToEntity(ProductViewModel viewModel)
+        {
+            return new Product
+            {
+                Id = viewModel.Id,
+                ProductName = viewModel.ProductName,
+                Description = viewModel.Description,
+                Price = viewModel.Price,
+                StockQuantity = viewModel.StockQuantity
+            };
         }
     }
 }

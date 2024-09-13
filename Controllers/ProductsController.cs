@@ -2,6 +2,7 @@
 using ProductInventory.Models;
 using ProductInventory.Services;
 using ProductInventory.Shared;
+using ProductInventory.ViewModels;
 
 namespace ProductInventory.Controllers
 {
@@ -17,9 +18,11 @@ namespace ProductInventory.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateProduct([FromBody] Product product)
+        //public async Task<IActionResult> CreateProduct([FromBody] Product product)
+        public async Task<IActionResult> CreateProduct([FromBody] ProductViewModel productViewModel)
         {
-            var response = new Response<Product>();
+            //var response = new Response<Product>();
+            var response = new Response<ProductViewModel>();
 
             if (!ModelState.IsValid)
             {
@@ -38,7 +41,7 @@ namespace ProductInventory.Controllers
                 return BadRequest(response);
             }
 
-            var productName = await _productService.GetProductNameByNameAsync(product.ProductName!);
+            var productName = await _productService.GetProductNameByNameAsync(productViewModel.ProductName!);
 
             if (productName != null)
             {
@@ -50,12 +53,12 @@ namespace ProductInventory.Controllers
                 return Conflict(response);
             }
 
-            await _productService.CreateProductAsync(product);
+            await _productService.CreateProductAsync(productViewModel);
 
             response.StatusCode = StatusCodes.Status201Created;
             response.Success = true;
             response.Message = "Product created successfully.";
-            response.Data = product;
+            response.Data = productViewModel;
 
             return Ok(response);
         }
@@ -91,7 +94,8 @@ namespace ProductInventory.Controllers
 
             if (product == null)
             {
-                var notFoundResponse = new Response<Product>
+                //var notFoundResponse = new Response<Product>
+                var notFoundResponse = new Response<ProductViewModel>
                 {
                     StatusCode = StatusCodes.Status404NotFound,
                     Success = false,
@@ -102,7 +106,8 @@ namespace ProductInventory.Controllers
                 return NotFound(notFoundResponse);
             }
 
-            var successResponse = new Response<Product>
+            //var successResponse = new Response<Product>
+            var successResponse = new Response<ProductViewModel>
             {
                 StatusCode = StatusCodes.Status200OK,
                 Success = true,
@@ -115,7 +120,8 @@ namespace ProductInventory.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product updatedProduct)
+        //public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product updatedProduct)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductViewModel updatedProduct)
         {
             if (id != updatedProduct.Id)
             {
@@ -126,12 +132,22 @@ namespace ProductInventory.Controllers
 
             if (existingProduct == null)
             {
-                return NotFound($"Product with ID {id} not found.");
+                var notFoundResponse = new Response<ProductViewModel>
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Success = false,
+                    Message = $"Product with ID {id} not found.",
+                    Data = null
+                };
+                //return NotFound($"Product with ID {id} not found.");
+
+                return NotFound(notFoundResponse);
             }
 
             if (!ModelState.IsValid)
             {
-                var response = new Response<Product>
+                //var response = new Response<Product>
+                var response = new Response<ProductViewModel>
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
                     Success = false,
@@ -149,12 +165,13 @@ namespace ProductInventory.Controllers
                 return BadRequest(response);
             }
 
-            // Check if the new product name already exists (excluding the current product)
-            var existingProductWithName = await _productService.GetProductNameByNameAsync(updatedProduct.ProductName!);
+            // Check if the new product name already exists (excluding the current product ID)
+            var existingProductWithName = await _productService.GetProductByNameExcludingIdAsync(updatedProduct.ProductName!, id);
 
-            if (existingProductWithName != null && existingProductWithName != existingProduct.ProductName)
+            if (existingProductWithName != null)
             {
-                var conflictResponse = new Response<Product>
+                //var conflictResponse = new Response<Product>
+                var conflictResponse = new Response<ProductViewModel>
                 {
                     StatusCode = StatusCodes.Status409Conflict,
                     Success = false,
@@ -173,7 +190,8 @@ namespace ProductInventory.Controllers
 
             await _productService.UpdateProductAsync(existingProduct);
 
-            var successResponse = new Response<Product>
+            //var successResponse = new Response<Product>
+            var successResponse = new Response<ProductViewModel>
             {
                 StatusCode = StatusCodes.Status200OK,
                 Success = true,
@@ -190,7 +208,8 @@ namespace ProductInventory.Controllers
 
             if (existingProduct == null)
             {
-                var notFoundResponse = new Response<Product>
+                //var notFoundResponse = new Response<Product>
+                var notFoundResponse = new Response<ProductViewModel>
                 {
                     StatusCode = StatusCodes.Status404NotFound,
                     Success = false,
@@ -203,7 +222,8 @@ namespace ProductInventory.Controllers
 
             await _productService.DeleteProductAsync(id);
 
-            var successResponse = new Response<Product>
+            //var successResponse = new Response<Product>
+            var successResponse = new Response<ProductViewModel>
             {
                 StatusCode = StatusCodes.Status204NoContent,
                 Success = true,

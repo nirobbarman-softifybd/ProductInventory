@@ -21,6 +21,14 @@ namespace ProductInventory.Repositories
         {
             return await _context.Products.Where(p => p.ProductName == productName).Select(p => p.ProductName).FirstOrDefaultAsync();
         }
+
+        //public async Task<Product?> GetProductByNameExcludingIdAsync(string productName, int excludedId)
+        public async Task<Product?> GetProductByNameExcludingIdAsync(string productName, int excludedId)
+        {
+            return await _context.Products
+                .Where(p => p.ProductName == productName && p.Id != excludedId)
+                .FirstOrDefaultAsync();
+        }
         //public async Task<IEnumerable<Product>> GetProductsAsync(string? searchTerm, string? sortBy, int skip, int take)
         //{
         //    var query = _context.Products.AsQueryable();
