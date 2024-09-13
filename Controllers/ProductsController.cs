@@ -53,12 +53,12 @@ namespace ProductInventory.Controllers
                 return Conflict(response);
             }
 
-            await _productService.CreateProductAsync(productViewModel);
+            var product = await _productService.CreateProductAsync(productViewModel);
 
             response.StatusCode = StatusCodes.Status201Created;
             response.Success = true;
             response.Message = "Product created successfully.";
-            response.Data = productViewModel;
+            response.Data = product;
 
             return Ok(response);
         }
@@ -125,7 +125,15 @@ namespace ProductInventory.Controllers
         {
             if (id != updatedProduct.Id)
             {
-                return BadRequest("Product ID in the URL does not match the ID in the request body.");
+                //return BadRequest("Product ID in the URL does not match the ID in the request body.");
+                var idMismatchResponse = new Response<ProductViewModel>
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Success = false,
+                    Message = "Product ID in the URL does not match the ID in the request body.",
+                    Data = null
+                };
+                return BadRequest(idMismatchResponse);
             }
 
             var existingProduct = await _productService.GetProductByIdAsync(id);
@@ -175,7 +183,8 @@ namespace ProductInventory.Controllers
                 {
                     StatusCode = StatusCodes.Status409Conflict,
                     Success = false,
-                    Message = $"A product with the name '{updatedProduct.ProductName}' already exists.",
+                    //Message = $"A product with the name '{updatedProduct.ProductName}' already exists.",
+                    Message = $"A product with the name '{updatedProduct.ProductName}' already exists with a different ID. Existing ID: {existingProductWithName.Id}.",
                     Data = null,
                     Errors = new List<string> { "Product with the same name already exists." }
                 };
@@ -183,12 +192,13 @@ namespace ProductInventory.Controllers
                 return Conflict(conflictResponse);
             }
 
-            existingProduct.ProductName = updatedProduct.ProductName;
-            existingProduct.Description = updatedProduct.Description;
-            existingProduct.Price = updatedProduct.Price;
-            existingProduct.StockQuantity = updatedProduct.StockQuantity;
+            //existingProduct.ProductName = updatedProduct.ProductName;
+            //existingProduct.Description = updatedProduct.Description;
+            //existingProduct.Price = updatedProduct.Price;
+            //existingProduct.StockQuantity = updatedProduct.StockQuantity;
 
-            await _productService.UpdateProductAsync(existingProduct);
+            //await _productService.UpdateProductAsync(existingProduct);
+            await _productService.UpdateProductAsync(updatedProduct);
 
             //var successResponse = new Response<Product>
             var successResponse = new Response<ProductViewModel>
@@ -196,7 +206,8 @@ namespace ProductInventory.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 Success = true,
                 Message = "Product updated successfully.",
-                Data = existingProduct
+                //Data = existingProduct
+                Data = updatedProduct
             };
             return Ok(successResponse);
         }

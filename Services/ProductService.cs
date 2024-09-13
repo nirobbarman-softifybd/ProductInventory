@@ -15,7 +15,8 @@ namespace ProductInventory.Services
         }
         
         //public async Task CreateProductAsync(Product product)
-        public async Task CreateProductAsync(ProductViewModel productViewModel)
+        //public async Task CreateProductAsync(ProductViewModel productViewModel)
+        public async Task<ProductViewModel> CreateProductAsync(ProductViewModel productViewModel)
         {
             //await _productRepository.AddAsync(product);
             //var product = new Product
@@ -28,6 +29,8 @@ namespace ProductInventory.Services
             //};
             var product = MapToEntity(productViewModel);
             await _productRepository.AddAsync(product);
+            productViewModel.Id = product.Id;
+            return productViewModel;
         }
         public async Task<string?> GetProductNameByNameAsync(string productName)
         {
@@ -38,21 +41,26 @@ namespace ProductInventory.Services
         //    return await _productRepository.GetProductsAsync(searchTerm, sortBy, skip, take);
         //}
 
-        public async Task<(IEnumerable<Product> Products, PaginationMetadata Pagination)> GetProductsAsync(string? searchTerm, string? sortBy, int pageNumber, int pageSize)
+        //public async Task<(IEnumerable<Product> Products, PaginationMetadata Pagination)> GetProductsAsync(string? searchTerm, string? sortBy, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<ProductViewModel> Products, PaginationMetadata Pagination)> GetProductsAsync(string? searchTerm, string? sortBy, int pageNumber, int pageSize)
         {
             var skip = (pageNumber - 1) * pageSize;
             var products = await _productRepository.GetProductsAsync(searchTerm, sortBy, skip, pageSize);
             var totalCount = await _productRepository.GetTotalCountAsync(searchTerm);
 
+            var productViewModels = products.Select(MapToViewModel);
+
             var paginationMetadata = new PaginationMetadata
             {
                 TotalCount = totalCount,
-                CurrentPageDataCount = products.Count(),
+                //CurrentPageDataCount = products.Count(),
+                CurrentPageDataCount = productViewModels.Count(),
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
 
-            return (products, paginationMetadata);
+            //return (products, paginationMetadata);
+            return (productViewModels, paginationMetadata);
         }
         //public async Task<Product?> GetProductByIdAsync(int id)
         public async Task<ProductViewModel?> GetProductByIdAsync(int id)
@@ -98,8 +106,16 @@ namespace ProductInventory.Services
             //    Price = productViewModel.Price,
             //    StockQuantity = productViewModel.StockQuantity
             //};
-            var product = MapToEntity(productViewModel);
-            await _productRepository.UpdateAsync(product);
+            //var product = MapToEntity(productViewModel);
+
+            var existingProduct = await _productRepository.GetByIdAsync(productViewModel.Id);
+
+            existingProduct!.ProductName = productViewModel.ProductName;
+            existingProduct.Description = productViewModel.Description;
+            existingProduct.Price = productViewModel.Price;
+            existingProduct.StockQuantity = productViewModel.StockQuantity;
+            //await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateAsync(existingProduct);
         }
         public async Task DeleteProductAsync(int id)
         {

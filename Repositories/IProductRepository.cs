@@ -4,7 +4,8 @@ namespace ProductInventory.Repositories
 {
     public interface IProductRepository
     {
-        Task AddAsync(Product product);
+        //Task AddAsync(Product product);
+        Task<Product> AddAsync(Product product);
         Task<string?> GetProductNameByNameAsync(string productName);
         Task<Product?> GetProductByNameExcludingIdAsync(string productName, int excludedId);
         Task<IEnumerable<Product>> GetProductsAsync(string? searchTerm, string? sortBy, int skip, int take);

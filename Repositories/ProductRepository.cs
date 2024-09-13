@@ -11,10 +11,12 @@ namespace ProductInventory.Repositories
         {
             _context = context;
         }
-        public async Task AddAsync(Product product)
+        //public async Task AddAsync(Product product)
+        public async Task<Product> AddAsync(Product product)
         {
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
+            return product;
         }
 
         public async Task<string?> GetProductNameByNameAsync(string productName)
